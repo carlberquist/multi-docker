@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t moetion/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run moetion/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t moetion/multi-client ./client
+  - docker build -t moetion/multi-nginx ./nginx
+  - docker build -t moetion/multi-server ./server
+  - docker build -t moetion/multi-worker ./worker
+  #take above images and push to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push moetion/multi-client
+  - docker push moetion/multi-nginx
+  - docker push moetion/multi-server
+  - docker push moetion/multi-worker
